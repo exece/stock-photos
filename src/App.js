@@ -7,18 +7,22 @@ const searchUrl = `https://api.unsplash.com/search/photos/`;
 
 function App() {
   const [loading, setLoading] = useState(false);
-  const [photos, setPhotots] = useState([]);
+  const [photos, setPhotos] = useState([]);
+  const [page, setPage] = useState(1);
 
   const fetchImages = async () => {
     setLoading(true);
     let url;
-    url = `${mainUrl}${clientID}`;
+    const urlPage = `&page=${page}`;
+    url = `${mainUrl}${clientID}${urlPage}`;
 
     try {
       const response = await fetch(url);
       const data = await response.json();
       setLoading(false);
-      setPhotots(data);
+      setPhotos((prevData) => {
+        return [...prevData, ...data]
+      });
     } catch (error) {
       setLoading(false);
       console.log(error);
@@ -27,6 +31,20 @@ function App() {
 
   useEffect(() => {
     fetchImages();
+  }, [page]);
+
+  useEffect(() => {
+    const event = window.addEventListener("scroll", () => {
+      if (
+        !loading &&
+        window.innerHeight + window.scrollY >= document.body.scrollHeight - 100
+      ) {
+        setPage((prev) => {
+          return prev + 1;
+        });
+      }
+    });
+    return () => window.removeEventListener("scroll", event);
   }, []);
 
   const handleSubmit = (e) => {
@@ -50,10 +68,10 @@ function App() {
       <section className="photos">
         <div className="photos-center">
           {photos.map((image) => {
-            return <Photo key={image.id} {...image} />
+            return <Photo key={image.id} {...image} />;
           })}
         </div>
-        {loading && <h2 className='loading'>Loading...</h2>}
+        {loading && <h2 className="loading">Loading...</h2>}
       </section>
     </amain>
   );
